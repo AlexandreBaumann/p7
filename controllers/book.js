@@ -1,8 +1,8 @@
 const Book = require("../models/book");
 const fs = require("fs");
+const sharp = require("sharp");
 
 ///////////////////////////////// CREATION ////////////////////////////////////////////////
-
 exports.createBook = (req, res, next) => {
   console.log("Raw request body:", req.body);
   console.log("File info:", req.file);
@@ -10,22 +10,31 @@ exports.createBook = (req, res, next) => {
   const bookObject = JSON.parse(req.body.book);
   delete bookObject._id;
   delete bookObject._userId;
-  const book = new Book({
-    ...bookObject,
-    userId: req.auth.userId,
-    ratings: bookObject.ratings || [],
-    imageUrl: `${req.protocol}://${req.get("host")}/images/${
-      req.file.filename
-    }`,
-  });
 
-  book
-    .save()
-    .then(() => {
-      res.status(201).json({ message: "Objet enregistré !" });
-    })
-    .catch((error) => {
-      res.status(400).json({ error });
+  sharp(req.file.path)
+    .resize(200, 200) // Redimensionnez l'image ici
+    .toFile(`images/resized/${req.file.filename}`, function (err) {
+      if (err) {
+        console.log(err);
+        return res.status(500).json({ error: err });
+      }
+      const book = new Book({
+        ...bookObject,
+        userId: req.auth.userId,
+        ratings: bookObject.ratings || [],
+        imageUrl: `${req.protocol}://${req.get("host")}/images/resized/${
+          req.file.filename
+        }`,
+      });
+
+      book
+        .save()
+        .then(() => {
+          res.status(201).json({ message: "Objet enregistré !" });
+        })
+        .catch((error) => {
+          res.status(400).json({ error });
+        });
     });
 };
 
@@ -37,29 +46,23 @@ exports.rateBook = (req, res, next) => {
 
   Book.findOne({ _id: req.params.id })
     .then((book) => {
-      // Vérifier si l'utilisateur a déjà noté le livre
       const existingRating = book.ratings.find((r) => r.userId === userId);
-
       if (existingRating) {
-        // L'utilisateur a déjà noté le livre, vous pouvez choisir de mettre à jour la note ou de renvoyer une erreur
         return res
           .status(400)
           .json({ message: "User has already rated this book." });
       } else {
-        // L'utilisateur n'a pas encore noté le livre, donc nous ajoutons sa note
         book.ratings.push({ userId: userId, grade: rating });
-
-        // Calculer la nouvelle moyenne
         const totalRatings = book.ratings.reduce((sum, r) => sum + r.grade, 0);
         const averageRating = totalRatings / book.ratings.length;
-
-        // Mettre à jour averageRating
         book.averageRating = averageRating;
 
         book
           .save()
           .then(() =>
-            res.status(201).json({ message: "Rating added successfully!" })
+            res
+              .status(201)
+              .json({ message: "Rating added successfully!", id: book._id })
           )
           .catch((error) => res.status(400).json({ error }));
       }

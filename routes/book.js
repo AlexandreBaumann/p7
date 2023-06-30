@@ -7,14 +7,14 @@ const multer = require("../middleware/multer-config");
 const bookPublicCtrl = require("../controllers/publicbook");
 const bookCtrl = require("../controllers/book");
 
-router.get("/", bookPublicCtrl.getAllBooks);
+router.get("/bestrating/", bookPublicCtrl.getBestrating);
 router.get("/:id", bookPublicCtrl.getOneBook);
-router.get("/bestrating/", bookPublicCtrl.getBestrating); // faire un truc sur l'ensemble des objets livres, faire un tri et prendre les trois premiers
+router.get("/", bookPublicCtrl.getAllBooks);
 
+router.post("/:id/rating", auth, bookCtrl.rateBook);
 router.post("/", auth, multer, bookCtrl.createBook);
 router.put("/:id", auth, multer, bookCtrl.modifyBook);
 router.delete("/:id", auth, bookCtrl.deleteBook);
-router.post("/:id/rating", auth, bookCtrl.rateBook);
 
 module.exports = router;
 

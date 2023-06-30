@@ -27,7 +27,7 @@ exports.getAllBooks = (req, res, next) => {
     });
 };
 
-exports.getBestRatings = (req, res, next) => {
+exports.getBestrating = (req, res, next) => {
   Book.find()
     .sort({ averageRating: -1 }) // Tri les livres par note moyenne en ordre décroissant
     .limit(3) // Retourne uniquement les 3 premiers livres
