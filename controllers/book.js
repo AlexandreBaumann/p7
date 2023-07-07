@@ -56,7 +56,6 @@ exports.rateBook = (req, res, next) => {
 ///////////////////////////////// MODIFICATION - LIVRE CREE ////////////////////////////////////////////////
 exports.modifyBook = async (req, res, next) => {
   let bookObject;
-
   try {
     bookObject = req.body.book ? JSON.parse(req.body.book) : req.body;
   } catch (error) {

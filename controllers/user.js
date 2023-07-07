@@ -1,9 +1,11 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
+require("dotenv").config();
+
+const cleJWT = process.env.JWT_SECRET;
 
 exports.signup = (req, res, next) => {
-  console.log(req.body); // Ceci va afficher le corps de la requête dans la console de votre serveur
   bcrypt
     .hash(req.body.password, 10)
     .then((hash) => {
@@ -15,7 +17,7 @@ exports.signup = (req, res, next) => {
         .save()
         .then(() => res.status(201).json({ message: "Utilisateur créé !" }))
         .catch((error) => {
-          console.error(error); // Ceci va afficher plus d'informations sur l'erreur.
+          console.error(error);
           res.status(400).json({ error });
         });
     })
@@ -36,7 +38,7 @@ exports.login = (req, res, next) => {
           }
           res.status(200).json({
             userId: user._id,
-            token: jwt.sign({ userId: user._id }, "RANDOM_TOKEN_SECRET", {
+            token: jwt.sign({ userId: user._id }, cleJWT, {
               expiresIn: "24h",
             }),
           });

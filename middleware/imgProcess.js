@@ -15,7 +15,7 @@ const imgProcess = async (req, res, next) => {
   }
 
   const { buffer, originalname } = req.file;
-  const timestamp = Date.now(); // Utilisez Date.now() pour obtenir le timestamp en tant que chaîne de chiffres
+  const timestamp = Date.now();
   const ext = path.extname(originalname);
   const basename = path.basename(originalname, ext);
   const ref = `${basename}-${timestamp}${ext}`;
@@ -26,7 +26,7 @@ const imgProcess = async (req, res, next) => {
     req.file.path = `images/${ref}`;
     next();
   } catch (error) {
-    next(error); // Transmettez les erreurs au gestionnaire d'erreur
+    next(error);
   }
 };
 
