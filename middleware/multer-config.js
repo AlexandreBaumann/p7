@@ -1,20 +1,36 @@
 const multer = require("multer");
+const sharp = require("sharp");
+const path = require("path");
 
-const MIME_TYPES = {
-  "image/jpg": "jpg",
-  "image/jpeg": "jpg",
-  "image/png": "png",
-};
-
-const storage = multer.diskStorage({
-  destination: (req, file, callback) => {
-    callback(null, "images");
-  },
-  filename: (req, file, callback) => {
-    const name = file.originalname.split(" ").join("_");
-    const extension = MIME_TYPES[file.mimetype];
-    callback(null, name + Date.now() + "." + extension);
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // Limite la taille de fichier à 5MB
   },
 });
 
-module.exports = multer({ storage: storage }).single("image");
+const imgProcess = async (req, res, next) => {
+  if (!req.file) {
+    return next();
+  }
+
+  const { buffer, originalname } = req.file;
+  const timestamp = Date.now(); // Utilisez Date.now() pour obtenir le timestamp en tant que chaîne de chiffres
+  const ext = path.extname(originalname);
+  const basename = path.basename(originalname, ext);
+  const ref = `${basename}-${timestamp}${ext}`;
+  try {
+    sharp(buffer)
+      .webp({ quality: 20 })
+      .toFile("./images/" + ref);
+    req.file.path = `images/${ref}`;
+    next();
+  } catch (error) {
+    next(error); // Transmettez les erreurs au gestionnaire d'erreur
+  }
+};
+
+module.exports = {
+  upload,
+  imgProcess,
+};
