@@ -45,7 +45,7 @@ exports.rateBook = (req, res, next) => {
           .then(() =>
             res
               .status(201)
-              .json({ message: "Rating added successfully!", id: book._id })
+              .json({ message: "Rating added successfully!", _id: book._id })
           )
           .catch((error) => res.status(400).json({ error }));
       }
